@@ -1,37 +1,25 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { RegisterUserDto } from './dtos/register-user.dto';
+import { FirebaseService } from '../firebase/firebase.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/auth.guard';
+import { IdToken } from '../auth/id-token.decorator';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
-  @Get()
-  getAllUsers() {
-    return this.usersService.getAllUsers();
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly firebaseService: FirebaseService,
+  ) {}
+  @Post('register')
+  async registerUser(@Body() dto: RegisterUserDto) {
+    return await this.usersService.registerUser(dto);
   }
-  @Get(':id')
-  getUserByID(@Param('id') id: string) {
-    return this.usersService.getUserById(Number(id));
-  }
-  @Post()
-  createUser(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.createUser(createUserDto);
-  }
-  @Put(':id')
-  updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.updateUser(Number(id), updateUserDto);
-  }
-  @Delete(':id')
-  deleteUser(@Param('id') id: string) {
-    return this.usersService.deleteUser(Number(id));
+  @Get('profile')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async profile(@IdToken() token: string) {
+    return await this.firebaseService.verifyIdToken(token);
   }
 }
