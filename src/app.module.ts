@@ -6,6 +6,8 @@ import { FirebaseModule } from './firebase/firebase.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { LoggerModule } from 'nestjs-pino';
+import { CustomLogger } from './custom.logger';
 
 @Module({
   imports: [
@@ -23,8 +25,10 @@ import { UsersModule } from './users/users.module';
     FirebaseModule.forRoot(),
     UsersModule,
     AuthModule,
+    LoggerModule.forRoot({ pinoHttp: { level: 'trace' } }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CustomLogger],
+  exports: [CustomLogger],
 })
 export class AppModule {}
